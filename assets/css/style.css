@@ -207,7 +207,7 @@ label {
 
 }
 .selected_status_container>li.active{
-    opacity: 0.7;
+    opacity: 0.5;
 }
 .agent-heading-inner-container>ul{
     transition: 0.3s ease-in-out;
@@ -322,3 +322,44 @@ ul.selected_status_container:before {
     letter-spacing: 0.8px;
 }
 /** Agent Heading **/
+
+
+.agent-left-heading-container {
+margin-left: 2em;
+margin-top: 15px;
+}
+
+
+
+
+
+.refresh_status{
+font-weight: 600;
+letter-spacing: 0.8px;
+font-size: 16px;
+}
+
+
+.refresh_icon {
+cursor: pointer;
+color: #4CAF50;
+margin-right: 10px;
+font-size: 15px;
+cursor: pointer;
+font-weight: 600;
+display: inline-block;
+display: inline-block;
+}
+
+.refresh_icon.animate {
+animation: spin 0.5s ease-in-out 1 forwards;
+}
+
+@keyframes spin {
+from {
+transform: rotate(0deg);
+}
+to {
+transform: rotate(180deg);
+}
+}

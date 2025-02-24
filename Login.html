@@ -12,6 +12,9 @@
     <link type="text/css" rel="stylesheet" href="./assets/fonts/Font-Awesome-6.4/font-awesome.css" />
     <!-- jQuery -->
     <script src="./assets/js/jquery-3.7.1.js"></script>
+    <script type="text/javascript">
+        var base_url = "http://192.168.30.147:8055";
+    </script>
     <style>
         .form-container {
             width: 500px;
@@ -46,7 +49,7 @@
                     <label class="form-input-label">Extension</label>
                 </div>
                 <div class="btn-container">
-                    <button type="submit" class="btn btn-primary btn-block submit-btn">Extension Login</button>
+                    <button type="submit" class="btn btn-primary btn-block submit-btn">Login</button>
                 </div>
 
             </form>
@@ -57,7 +60,16 @@
     <!-- Agent Details (Page 2) -->
     <div id="agentDetails" class="agentdetails-container d-none">
         <div class="agentdetails-inner-container">
-            <div class="d-flex justify-content-end agentdetails-inner-main-container">
+
+
+            <div class="d-flex justify-content-between agentdetails-inner-main-container align-items-center">
+                <div class="agent-left-heading-container">
+                    <div class="agent-left-heading-inner-container">
+                        <i id="refresh_agent_status" class="fa-solid fa-arrows-rotate refresh_icon"></i>
+                        <span class="refresh_status">Available</span>
+                    </div>
+                </div>
+
                 <div class="agent-heading-container">
 
                     <div class="agent-heading-icon agent-heading-inner-container">
@@ -81,6 +93,7 @@
                 </div>
             </div>
 
+
             <!-- Success message with buttons in the top-right corner -->
             <div class="agent-heading-main-container d-none" id="result">
                 <!-- <strong>Success!</strong> <span id="response_message">Extension logged in.</span> -->
@@ -100,8 +113,11 @@
                         <label class="agent-details-list-label">Agent ID </label>
                         <span class="agent-details-list-value" id="displayAgentId">1001</span>
                     </li>
-                    <li class="agent-details-list-group-item"> <label class="agent-details-list-label">Extension
-                        </label> <span class="agent-details-list-value" id="displayExtension">3000</span></li>
+                    <li class="agent-details-list-group-item">
+                        <label class="agent-details-list-label">
+                            Extension
+                        </label> <span class="agent-details-list-value" id="displayExtension">3000</span>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -113,16 +129,22 @@
 
     <script>
 
+        document.querySelector(".refresh_icon").addEventListener("click", function () {
+            this.classList.add("animate");
+
+            setTimeout(() => {
+                this.classList.remove("animate");
+            }, 1000); // Remove class after animation ends
+        });
+
         $(document).ready(function () {
+          
 
             var urlParams = new URLSearchParams(window.location.search);
             var code = urlParams.get('code');
 
 
-            // You can assign values to the input fields when the page loads
-            $('#agentId').val('3000');
-            $('#password').val('1234');
-            $('#extension').val('2741');
+
 
             let agentId = sessionStorage.getItem("agentid");
 
@@ -144,7 +166,7 @@
             })
 
             $(document).on("click", ".selected_status_container > li", function () {
-                $(this).siblings().removeClass('active').end().toggleClass('active');
+                $(this).siblings().removeClass('active').end().addClass('active');
                 updateCurrentStatus();
                 $('.selected_status_container').toggleClass('active');
             })
@@ -157,13 +179,19 @@
             $('.agent-heading-inner-container').attr('data-status', currentStatus);
         }
 
+        function isAlreadyActive(element) {
+            return $(element).hasClass('active');
+        }
+
+
         // Handle form submission
         $('#agentForm').submit(function (e) {
             e.preventDefault(); // Prevent form submission
+            $('.submit-btn').attr('disabled',true);
             var agentId = $('#agentId').val();
             var password = $('#password').val();
             var extension = $('#extension').val();
-            var apiUrl = 'https://localhost:44315/Extension/Register';
+            var apiUrl = base_url + '/Extension/Register';
 
             var requestData = {
                 AgentId: agentId,
@@ -171,8 +199,6 @@
                 Extension: extension,
                 ExtensionPassword: "1234"
             };
-
-
             executeWebRequest(apiUrl, requestData, "ExtensionLogin")
         });
 
@@ -181,7 +207,7 @@
             var agentId = $('#agentId').val();
             var password = $('#password').val();
             var extension = $('#extension').val();
-            var apiUrl = 'https://localhost:44315/Agent/Login';
+            var apiUrl = base_url + '/Agent/Login';
 
             var requestData = {
                 AgentId: agentId,
@@ -195,10 +221,12 @@
 
         $('#btnAgentReady').click(function (e) {
 
+            if (isAlreadyActive(this)) return;
+
             var agentId = $('#agentId').val();
             var password = $('#password').val();
             var extension = $('#extension').val();
-            var apiUrl = 'https://localhost:44315/Agent/SetAgentReady';
+            var apiUrl = base_url + '/Agent/SetAgentReady';
 
             var requestData = {
                 AgentId: agentId,
@@ -210,16 +238,56 @@
             executeWebRequest(apiUrl, requestData, 'AgentReady')
         });
 
-        $('#btnAgentLogout').click(function (e) {
+        $('#btnAgentNotReady').click(function (e) {
+
+            if (isAlreadyActive(this)) return;
 
             var agentId = $('#agentId').val();
             var password = $('#password').val();
             var extension = $('#extension').val();
-            var apiUrl = 'https://localhost:44315/Agent/LogoutAgent';
+            var apiUrl = base_url + '/Agent/SetAgentNotReady';
 
             var requestData = {
                 AgentId: agentId,
                 AgentPassword: password,
+                Extension: extension,
+                ExtensionPassword: "1234"
+            };
+
+            executeWebRequest(apiUrl, requestData, 'AgentNotReady')
+        });
+
+        $('#refresh_agent_status').click(function (e) {
+
+            var apiUrl = base_url + '/Agent/GetAgentState';
+
+
+            var agentId = $('#displayAgentId').text();
+            var extension = $('#displayExtension').text();
+
+            var requestData = {
+                AgentId: agentId,
+                AgentPassword: "1234",
+                Extension: extension,
+                ExtensionPassword: "1234"
+            };
+
+            executeWebRequest(apiUrl, requestData, 'getAgentStatus')
+
+        });
+
+
+        $('#btnAgentLogout').click(function (e) {
+            if (isAlreadyActive(this)) return;
+
+
+            var agentId = $('#displayAgentId').text();
+            var extension = $('#displayExtension').text();
+            var apiUrl = base_url + '/Agent/LogoutAgent';
+
+            var requestData = {
+                AgentId: agentId,
+                AgentPassword: "1234",
                 Extension: extension,
                 ExtensionPassword: "1234"
             };
@@ -230,7 +298,6 @@
 
         function executeWebRequest(apiUrl, requestData, reqparam) {
 
-            apiUrl = "http://192.168.30.147:8055/Testing";
 
             $.ajax({
                 url: apiUrl,
@@ -244,6 +311,7 @@
                 },
                 error: function (error) {
                     WriteLog('ERROR', error.statusText);
+                    $('.submit-btn').attr('disabled',false);
                 }
             });
 
@@ -252,7 +320,6 @@
                 $('#loginForm').removeClass('d-none');
             });
             function respAgentLogin(response, request, reqparam) {
-
                 if (response.status == true) {
                     WriteLog('INFO', response.message);
                     if (reqparam == "AgentLogout") {
@@ -263,25 +330,35 @@
                     } else if (reqparam == "ExtensionLogin") {
                         setSessionValues(request.AgentId, request.Extension, request.AgentPassword);
 
+                        var apiUrl = base_url + '/Agent/Login';
+                        executeWebRequest(apiUrl, request, 'Login')
+
                         $('#loginForm').addClass('d-none');
                         $('#agentDetails').removeClass('d-none');
                         $('#displayAgentId').text(request.AgentId);
                         $('#displayExtension').text(request.Extension);
-                    } else if (reqparam == "Login") {
 
+                        $('.selected_status_container > li').removeClass('active'); // Remove active class from all
+                        $('.selected_status_container > li.not_ready').addClass('active'); // Add active class to .not_ready
+                        $('.selected_status').attr('data-status', 'Not Ready');
+                        updateCurrentStatus();
+                    } else if (reqparam == "Login") {
+                        $('.submit-btn').attr('disabled',false);
                         $("#response_message").text('Agent Logged in');
                     }
                     else if (reqparam == "AgentReady") {
                         $("#response_message").text('Agent State Changed to Ready');
-
+                        $(".refresh_status").text("agentReady");
                     }
-                    $('.selected_status_container > li').find('active').removeClass('active');
-                    $('.selected_status_container > li').find('not_ready active').addClass('active');
-                    $('.selected_status').attr('data-status','Not Ready');
+                    else if (reqparam == "AgentNotReady") {
+                        $(".refresh_status").text("agentNotReady");
+                    }
+                    else if (reqparam == "getAgentStatus") {
+                        $(".refresh_status").text(response.message);
+                    }
 
                 } else {
-
-                    alert(response.error_message)
+                    $('.submit-btn').attr('disabled',false);
                 }
             }
 
@@ -291,12 +368,6 @@
                 sessionStorage.setItem("extension", extension);
 
             }
-
-
-
-
-
-
 
 
             function WriteLog(type, msg) {
