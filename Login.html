@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Login</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="./assets/css/bootstrap-5.3.3.css">
+    <link rel="stylesheet" href="./assets/css/style.css">
+    <link type="text/css" rel="stylesheet" href="./assets/fonts/OpenSans/Open-Sans.css" />
+    <link type="text/css" rel="stylesheet" href="./assets/fonts/Font-Awesome-6.4/font-awesome.css" />
+    <!-- jQuery -->
+    <script src="./assets/js/jquery-3.7.1.js"></script>
+    <style>
+        .form-container {
+            width: 500px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Login Form (Page 1) -->
+    <div id="loginForm" class="form-main-container">
+        <div id="loginFormContainer" class="form-container">
+            <div class="title-container">
+                <h2 class="text-center page-title">Agent Login</h2>
+            </div>
+
+            <div class="img-container">
+                <img src="./assets/images/login_bg.jpg" alt="Login Background" class="login-img" />
+            </div>
+
+            <form id="agentForm" class="form-input-container">
+                <div class="form-group form-input-inner-container">
+                    <input type="text" class="form-control form-input-text" id="agentId" placeholder="" required>
+                    <label class="form-input-label">Agent ID</label>
+                </div>
+                <div class="form-group form-input-inner-container">
+                    <input type="password" class="form-control form-input-text" id="password" placeholder="" required>
+                    <label class="form-input-label">Password</label>
+                </div>
+                <div class="form-group form-input-inner-container">
+                    <input type="text" class="form-control form-input-text" id="extension" placeholder="" required>
+                    <label class="form-input-label">Extension</label>
+                </div>
+                <div class="btn-container">
+                    <button type="submit" class="btn btn-primary btn-block submit-btn">Extension Login</button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+
+    <!-- Agent Details (Page 2) -->
+    <div id="agentDetails" class="agentdetails-container d-none">
+        <div class="agentdetails-inner-container">
+            <div class="d-flex justify-content-end agentdetails-inner-main-container">
+                <div class="agent-heading-container">
+
+                    <div class="agent-heading-icon agent-heading-inner-container">
+                        <img src="./assets/images/user_logo.png" alt="Login logo" />
+                    </div>
+
+                    <div class="agent-heading-status-container agent-heading-inner-container">
+                        <div class="agent-heading-name">
+                            <h3>Agent</h3>
+                        </div>
+                        <div class="agent-heading-status-dropdown agent-heading-inner-container">
+                            <span class="selected_status"></span>
+                            <ul class="selected_status_container">
+                                <li class="ready" id="btnAgentReady">Ready</li>
+                                <li class="active not_ready" id="btnAgentNotReady">Not Ready</li>
+                                <li class="logout" id="btnAgentLogout">Logout</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Success message with buttons in the top-right corner -->
+            <div class="agent-heading-main-container d-none" id="result">
+                <!-- <strong>Success!</strong> <span id="response_message">Extension logged in.</span> -->
+
+
+
+            </div>
+            <div class="agent-details-list-group-container">
+                <div class="agent-details-list-group-title-container">
+                    <h2 class="agent-details-list-group-title">Agent Details</h2>
+                </div>
+                <ul id="detailsList" class="agent-details-list-group">
+
+
+
+                    <li class="agent-details-list-group-item">
+                        <label class="agent-details-list-label">Agent ID </label>
+                        <span class="agent-details-list-value" id="displayAgentId">1001</span>
+                    </li>
+                    <li class="agent-details-list-group-item"> <label class="agent-details-list-label">Extension
+                        </label> <span class="agent-details-list-value" id="displayExtension">3000</span></li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+
+
+
+
+    <script>
+
+        $(document).ready(function () {
+
+            var urlParams = new URLSearchParams(window.location.search);
+            var code = urlParams.get('code');
+
+
+            // You can assign values to the input fields when the page loads
+            $('#agentId').val('3000');
+            $('#password').val('1234');
+            $('#extension').val('2741');
+
+            let agentId = sessionStorage.getItem("agentid");
+
+
+
+            if (agentId != null) {
+                let extension = sessionStorage.getItem("extension");
+                $('#loginForm').addClass('d-none');
+                $('#agentDetails').removeClass('d-none');
+                $('#displayAgentId').text(agentId);
+                $('#displayExtension').text(extension);
+
+            }
+
+            updateCurrentStatus();
+
+            $(document).on("click", ".selected_status", function () {
+                $('.selected_status_container').toggleClass('active');
+            })
+
+            $(document).on("click", ".selected_status_container > li", function () {
+                $(this).siblings().removeClass('active').end().toggleClass('active');
+                updateCurrentStatus();
+                $('.selected_status_container').toggleClass('active');
+            })
+        });
+
+        function updateCurrentStatus() {
+            let currentStatus = ($('.agent-heading-status-dropdown > ul').find('li.active').html());
+            $('.selected_status').text(currentStatus);
+            $('.selected_status').attr('data-status', currentStatus);
+            $('.agent-heading-inner-container').attr('data-status', currentStatus);
+        }
+
+        // Handle form submission
+        $('#agentForm').submit(function (e) {
+            e.preventDefault(); // Prevent form submission
+            var agentId = $('#agentId').val();
+            var password = $('#password').val();
+            var extension = $('#extension').val();
+            var apiUrl = 'https://localhost:44315/Extension/Register';
+
+            var requestData = {
+                AgentId: agentId,
+                AgentPassword: password,
+                Extension: extension,
+                ExtensionPassword: "1234"
+            };
+
+
+            executeWebRequest(apiUrl, requestData, "ExtensionLogin")
+        });
+
+        $('#btnAgentLogin').click(function (e) {
+
+            var agentId = $('#agentId').val();
+            var password = $('#password').val();
+            var extension = $('#extension').val();
+            var apiUrl = 'https://localhost:44315/Agent/Login';
+
+            var requestData = {
+                AgentId: agentId,
+                AgentPassword: password,
+                Extension: extension,
+                ExtensionPassword: "1234"
+            };
+
+            executeWebRequest(apiUrl, requestData, 'Login')
+        });
+
+        $('#btnAgentReady').click(function (e) {
+
+            var agentId = $('#agentId').val();
+            var password = $('#password').val();
+            var extension = $('#extension').val();
+            var apiUrl = 'https://localhost:44315/Agent/SetAgentReady';
+
+            var requestData = {
+                AgentId: agentId,
+                AgentPassword: password,
+                Extension: extension,
+                ExtensionPassword: "1234"
+            };
+
+            executeWebRequest(apiUrl, requestData, 'AgentReady')
+        });
+
+        $('#btnAgentLogout').click(function (e) {
+
+            var agentId = $('#agentId').val();
+            var password = $('#password').val();
+            var extension = $('#extension').val();
+            var apiUrl = 'https://localhost:44315/Agent/LogoutAgent';
+
+            var requestData = {
+                AgentId: agentId,
+                AgentPassword: password,
+                Extension: extension,
+                ExtensionPassword: "1234"
+            };
+
+            executeWebRequest(apiUrl, requestData, 'AgentLogout')
+
+        });
+
+        function executeWebRequest(apiUrl, requestData, reqparam) {
+
+            apiUrl = "http://192.168.30.147:8055/Testing";
+
+            $.ajax({
+                url: apiUrl,
+                method: 'POST',
+                data: JSON.stringify(requestData),
+                contentType: 'application/json',
+                success: function (response) {
+                    WriteLog('INFO', response);
+                    respAgentLogin(response, requestData, reqparam);
+
+                },
+                error: function (error) {
+                    WriteLog('ERROR', error.statusText);
+                }
+            });
+
+            $(document).on("click", "#logout", function () {
+                $('#agentDetails').addClass('d-none');
+                $('#loginForm').removeClass('d-none');
+            });
+            function respAgentLogin(response, request, reqparam) {
+
+                if (response.status == true) {
+                    WriteLog('INFO', response.message);
+                    if (reqparam == "AgentLogout") {
+
+                        setSessionValues('', '', '');
+                        $('#loginForm').removeClass('d-none');
+                        $('#agentDetails').addClass('d-none');
+                    } else if (reqparam == "ExtensionLogin") {
+                        setSessionValues(request.AgentId, request.Extension, request.AgentPassword);
+
+                        $('#loginForm').addClass('d-none');
+                        $('#agentDetails').removeClass('d-none');
+                        $('#displayAgentId').text(request.AgentId);
+                        $('#displayExtension').text(request.Extension);
+                    } else if (reqparam == "Login") {
+
+                        $("#response_message").text('Agent Logged in');
+                    }
+                    else if (reqparam == "AgentReady") {
+                        $("#response_message").text('Agent State Changed to Ready');
+
+                    }
+                    $('.selected_status_container > li').find('active').removeClass('active');
+                    $('.selected_status_container > li').find('not_ready active').addClass('active');
+                    $('.selected_status').attr('data-status','Not Ready');
+
+                } else {
+
+                    alert(response.error_message)
+                }
+            }
+
+            function setSessionValues(agentid, extension, password) {
+                sessionStorage.setItem("agentid", agentid);
+                sessionStorage.setItem("agentpassword", password);
+                sessionStorage.setItem("extension", extension);
+
+            }
+
+
+
+
+
+
+
+
+            function WriteLog(type, msg) {
+
+
+                if (type == 'INFO') {
+                    console.log("%c", "color:Green;font-weight: bold", msg, "");
+                }
+
+                else if (type == 'DEBUG') {
+                    console.log("%c", "color:DodgerBlue;font-weight: bold", msg, "");
+                }
+
+                else if (type == 'ERROR') {
+                    console.log("%c", "color:Red;font-weight: bold", msg, "");
+                }
+
+                else if (type == 'WARNING') {
+                    console.log("%c", "color:Orange;font-weight: bold", msg, "");
+                }
+            };
+
+        }
+    </script>
+</body>
+
+</html>
